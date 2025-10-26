@@ -1,0 +1,210 @@
+import React, { useState } from "react";
+
+// Cartoon Chop - Single-file React component (TailwindCSS classes)
+// Usage: drop into a React app with Tailwind configured (or CodeSandbox with Tailwind).
+
+export default function CartoonChopStore() {
+  const [products] = useState([
+    {
+      id: 1,
+      title: "علب كرتون صغيرة - 10x10x10 cm",
+      desc: "علب كرتون متينة للمنتجات الصغيرة. قابلة للطباعة.",
+      price: 1.25,
+      sku: "CC-S-001",
+    },
+    {
+      id: 2,
+      title: "علب شحن متوسطة - 30x20x15 cm",
+      desc: "مثالية للشحن الآمن. مقاومة للرطوبة الخفيفة.",
+      price: 2.95,
+      sku: "CC-M-010",
+    },
+    {
+      id: 3,
+      title: "علب هدايا مطبوعة",
+      desc: "علب هدايا بتصاميم مخصصة — جودة طباعة عالية.",
+      price: 3.5,
+      sku: "CC-G-050",
+    },
+    {
+      id: 4,
+      title: "تغليف دفعات كبيرة (تخفيض)",
+      desc: "عروض للشركات — اطلب كمية واحصل على خصم.",
+      price: 0.85,
+      sku: "CC-BULK-100",
+    },
+  ]);
+
+  const [cart, setCart] = useState([]);
+  const [query, setQuery] = useState("");
+
+  function addToCart(p) {
+    setCart((c) => {
+      const found = c.find((i) => i.id === p.id);
+      if (found) {
+        return c.map((i) => (i.id === p.id ? { ...i, qty: i.qty + 1 } : i));
+      }
+      return [...c, { ...p, qty: 1 }];
+    });
+  }
+
+  function removeFromCart(id) {
+    setCart((c) => c.filter((i) => i.id !== id));
+  }
+
+  function changeQty(id, qty) {
+    if (qty <= 0) return removeFromCart(id);
+    setCart((c) => c.map((i) => (i.id === id ? { ...i, qty } : i)));
+  }
+
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+
+  const filtered = products.filter(
+    (p) =>
+      p.title.includes(query) ||
+      p.desc.includes(query) ||
+      p.sku.includes(query) ||
+      query.trim() === ""
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-white p-6">
+      <header className="max-w-6xl mx-auto flex items-center justify-between py-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg bg-yellow-300 flex items-center justify-center shadow">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="6" width="18" height="12" rx="2" stroke="#1f2937" strokeWidth="1.2"/>
+              <path d="M7 6v-2h10v2" stroke="#1f2937" strokeWidth="1.2"/>
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-2xl font-extrabold leading-tight">Cartoon Chop</h1>
+            <p className="text-sm text-slate-500">علب كرتون وتغليف احترافي — شحن سريع</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="ابحث عن منتج أو رمز..."
+            className="border rounded-lg px-3 py-2 text-sm w-56"
+          />
+
+          <button className="px-4 py-2 rounded-lg border bg-white shadow-sm text-sm">عنّا</button>
+
+          <div className="relative">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 text-white">
+              سلة ({cart.reduce((s, i) => s + i.qty, 0)})
+            </button>
+            <div className="absolute right-0 mt-2 w-80 bg-white border rounded-lg shadow-lg p-4 z-50">
+              <h3 className="font-semibold">العربة</h3>
+              {cart.length === 0 ? (
+                <p className="text-sm text-slate-500 mt-2">سلة فارغة — أضف منتجات</p>
+              ) : (
+                <div className="mt-2 space-y-3">
+                  {cart.map((it) => (
+                    <div key={it.id} className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-medium">{it.title}</div>
+                        <div className="text-xs text-slate-500">{it.qty} × ${it.price.toFixed(2)}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          className="w-16 border rounded px-2 py-1 text-sm"
+                          value={it.qty}
+                          onChange={(e) => changeQty(it.id, Number(e.target.value))}
+                        />
+                        <button className="text-xs text-red-600" onClick={() => removeFromCart(it.id)}>
+                          إزالة
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="border-t pt-2 flex items-center justify-between">
+                    <div className="text-sm font-semibold">المجموع</div>
+                    <div className="text-sm font-medium">${subtotal.toFixed(2)}</div>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button className="flex-1 py-2 rounded-lg bg-green-600 text-white">الدفع (تجريبي)</button>
+                    <button className="py-2 px-3 rounded-lg border">تفاصيل</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <section className="lg:col-span-3 bg-white rounded-lg p-6 shadow">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">منتجاتنا المميزة</h2>
+            <div className="text-sm text-slate-500">عرض {filtered.length} نتيجة</div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {filtered.map((p) => (
+              <article key={p.id} className="border rounded-lg p-4 flex gap-4 items-start">
+                <div className="w-28 h-20 flex-shrink-0 rounded-md bg-slate-100 flex items-center justify-center">
+                  {/* simple svg placeholder */}
+                  <svg width="60" height="40" viewBox="0 0 60 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="60" height="40" rx="4" fill="#F8F2E8" stroke="#E5E7EB"/>
+                    <path d="M6 30 L20 10 L36 26 L54 8" stroke="#94A3B8" strokeWidth="2" fill="none"/>
+                  </svg>
+                </div>
+
+                <div className="flex-1">
+                  <h3 className="font-semibold">{p.title}</h3>
+                  <p className="text-xs text-slate-500 mt-1">{p.desc}</p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="text-lg font-bold">${p.price.toFixed(2)}</div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => addToCart(p)}
+                        className="px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm"
+                      >
+                        أضف للسلة
+                      </button>
+                      <button className="px-3 py-2 rounded-lg border text-sm">تفاصيل</button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <aside className="bg-white rounded-lg p-6 shadow">
+          <h3 className="font-bold mb-2">تواصل معنا</h3>
+          <p className="text-sm text-slate-600">واتساب: +212 6X XXX XXXX</p>
+          <p className="text-sm text-slate-600">البريد: info@cartoonchop.example</p>
+
+          <div className="mt-4">
+            <h4 className="font-semibold">خدمة العملاء</h4>
+            <ul className="text-sm text-slate-600 mt-2 space-y-1">
+              <li>ساعات العمل: 9 ص - 6 م (اثنين - جمعة)</li>
+              <li>سياسة إرجاع: 7 أيام للمنتجات غير المفتوحة</li>
+            </ul>
+          </div>
+
+          <div className="mt-6">
+            <h4 className="font-semibold">اطلب عرض سعر</h4>
+            <p className="text-sm text-slate-500 mt-2">أدخل كمية ونتواصل معك بعرض سعر مخصص.</p>
+            <form className="mt-3 space-y-2" onSubmit={(e) => e.preventDefault()}>
+              <input placeholder="اسمك" className="w-full border rounded px-3 py-2 text-sm" />
+              <input placeholder="رقم واتساب" className="w-full border rounded px-3 py-2 text-sm" />
+              <input placeholder="الكمية المطلوبة" type="number" className="w-full border rounded px-3 py-2 text-sm" />
+              <button className="w-full py-2 rounded bg-yellow-400 font-semibold">اطلب عرض</button>
+            </form>
+          </div>
+        </aside>
+      </main>
+
+      <footer className="max-w-6xl mx-auto mt-8 py-6 text-center text-sm text-slate-600">
+        © {new Date().getFullYear()} Cartoon Chop — حقوق الطبع محفوظة
+      </footer>
+    </div>
+  );
+}
